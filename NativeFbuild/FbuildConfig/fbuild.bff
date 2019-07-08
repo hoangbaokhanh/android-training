@@ -1,0 +1,45 @@
+#import NDK_PATH
+#import SOURCE_PATH
+
+.CppSourcePath = .SOURCE_PATH
+.NDKPath = .NDK_PATH
+//------------------------------------------------------------------------------ 
+.LLVMToolChainRoot = '$NDKPath$\toolchains\llvm\prebuilt\windows-x86_64'
+.LLVMSysroot = '$LLVMToolChainRoot$\sysroot'
+.NDKToolchainClangRoot = '$LLVMToolChainRoot$\bin'
+// Include paths 
+//------------------------------------------------------------------------------ 
+.BaseIncludePaths = ' -I$LLVMSysroot$\usr\include'
+                  + ' -I$LLVMSysroot$\usr\include\arm-linux-androideabi'
+                  + ' -I$CppSourcePath$\include'
+.Compiler           = '$NDKToolchainClangRoot$\clang++.exe'
+.CompilerOptions    = '$BaseIncludePaths$ -fno-exceptions -std=c++11 -fno-rtti -DOS_ANDROID -DANDROID -stdlib=libc++ --target=armv7a-none-linux-androideabi16 -c %1 -o %2'
+.CompilerOutputExtension = '.o'
+
+.Linker             = '$NDKToolchainClangRoot$\clang++.exe'
+.LinkerOptions     	= ' -llog -landroid'
+                    + ' -marm -march=armv7-a --target=armv7a-none-linux-androideabi16 -stdlib=libc++ -static-libstdc++ -shared %1 -o %2'
+                    + ' -Wl,-rpath-link=$LLVMSysroot$\usr\lib\arm-linux-androideabi\16'
+                    + ' --sysroot=$LLVMSysroot$'
+                    + ' -fuse-ld=lld.exe -Wl,--no-threads -v'
+
+ObjectList('3DEngine-OBJ')
+{
+    .CompilerInputPath  = {
+        "$CppSourcePath$\src"
+    }
+    .CompilerOutputPath = '$CppSourcePath$\Build\Android\Obj'
+}
+
+Executable('3DEngine-SO')
+{
+    .Libraries          = { "3DEngine-OBJ" }
+    .LinkerOutput       = '$CppSourcePath$\Build\Android\libGameJni.so'
+}
+
+//------------------------------------------------------------------------------
+Alias( 'all' )
+{
+    .Targets = {'3DEngine-OBJ', '3DEngine-SO'}
+}
+
